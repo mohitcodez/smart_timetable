@@ -26,6 +26,8 @@
   /* ── Slot ↔ (day, period) helpers ─────────────────────────────── */
   function slotToDay(color)    { return DAYS[Math.floor(color / SLOTS_PER_DAY)]; }
   function slotToPeriod(color) { return (color % SLOTS_PER_DAY) + 1; }
+  function slotToDayIndex(color){ return Math.floor(color / SLOTS_PER_DAY); }
+  function slotToPeriodIndex(color) { return color % SLOTS_PER_DAY; }
 
   /* ── Build session list ───────────────────────────────────────── */
   function buildSessions(db) {
@@ -72,6 +74,8 @@
             batch_id:   batch.batch_id,
             room_id:    room.room_id,
             subject_id: subj.subject_id,
+            weekly_lectures: subj.lectures_per_week,
+            lecture_index: l,
             color:      -1       /* unassigned */
           });
         }
@@ -139,6 +143,78 @@
     return bestIndex;
   }
 
+  function getDailySubjectLimit(session) {
+    /* Spread each subject through the week as much as possible. */
+    return Math.max(1, Math.ceil(session.weekly_lectures / DAYS.length));
+  }
+
+  function dayDistanceCircular(a, b) {
+    var d = Math.abs(a - b);
+    return Math.min(d, DAYS.length - d);
+  }
+
+  function getPlacementPenalty(sessions, idx, color, maxPerDay) {
+    var session = sessions[idx];
+    var dayIdx = slotToDayIndex(color);
+    var periodIdx = slotToPeriodIndex(color);
+
+    var sameSubjectSameDay = 0;
+    var batchDayLoad = 0;
+    var adjacentSameSubject = false;
+
+    for (var i = 0; i < sessions.length; i++) {
+      var other = sessions[i];
+      if (i === idx || other.color < 0) continue;
+      if (other.batch_id !== session.batch_id) continue;
+      if (slotToDayIndex(other.color) !== dayIdx) continue;
+
+      batchDayLoad++;
+
+      if (other.subject_id === session.subject_id) {
+        sameSubjectSameDay++;
+        if (Math.abs(slotToPeriodIndex(other.color) - periodIdx) === 1) {
+          adjacentSameSubject = true;
+        }
+      }
+    }
+
+    if (sameSubjectSameDay >= maxPerDay) return null;
+
+    var preferredDay = session.lecture_index % DAYS.length;
+    var spreadPenalty = dayDistanceCircular(dayIdx, preferredDay);
+
+    return (sameSubjectSameDay * 100) +
+           (batchDayLoad * 5) +
+           (adjacentSameSubject ? 20 : 0) +
+           (spreadPenalty * 3);
+  }
+
+  function chooseBestColor(sessions, idx, used, maxPerDay) {
+    var bestColor = -1;
+    var bestPenalty = Number.POSITIVE_INFINITY;
+    var currentMaxColor = -1;
+
+    for (var i = 0; i < sessions.length; i++) {
+      if (sessions[i].color > currentMaxColor) currentMaxColor = sessions[i].color;
+    }
+
+    var searchLimit = Math.max(TOTAL_SLOTS - 1, currentMaxColor + 1);
+
+    for (var color = 0; color <= searchLimit; color++) {
+      if (used[color]) continue;
+
+      var penalty = getPlacementPenalty(sessions, idx, color, maxPerDay);
+      if (penalty === null) continue;
+
+      if (penalty < bestPenalty || (penalty === bestPenalty && (bestColor === -1 || color < bestColor))) {
+        bestPenalty = penalty;
+        bestColor = color;
+      }
+    }
+
+    return bestColor;
+  }
+
   function pickSmallestColor(sessions, adj, idx) {
     var used = {};
     var k;
@@ -149,7 +225,21 @@
       if (color >= 0) used[color] = true;
     }
 
-    var selected = 0;
+    var baseLimit = getDailySubjectLimit(sessions[idx]);
+
+    var selected = chooseBestColor(sessions, idx, used, baseLimit);
+    if (selected !== -1) return selected;
+
+    /* If strict distribution is impossible, relax by one session/day. */
+    selected = chooseBestColor(sessions, idx, used, baseLimit + 1);
+    if (selected !== -1) return selected;
+
+    /* Last-resort fallback to preserve feasibility in extreme inputs. */
+    selected = chooseBestColor(sessions, idx, used, Number.MAX_SAFE_INTEGER);
+    if (selected !== -1) return selected;
+
+    /* Defensive fallback (should rarely happen). */
+    selected = 0;
     while (used[selected]) selected++;
     return selected;
   }
@@ -169,20 +259,27 @@
   }
 
   /* ── Backtracking for overflow slots ─────────────────────────── */
-  function isSafeColor(sessions, adj, idx, color) {
+  function isSafeColor(sessions, adj, idx, color, dailyLimitRelaxation) {
     for (var k = 0; k < adj[idx].length; k++) {
       if (sessions[adj[idx][k]].color === color) return false;
     }
+
+    var maxPerDay = getDailySubjectLimit(sessions[idx]) + (dailyLimitRelaxation || 0);
+    if (getPlacementPenalty(sessions, idx, color, maxPerDay) === null) return false;
+
     return true;
   }
 
-  function backtrack(sessions, adj, idx, maxColor) {
+  function backtrack(sessions, adj, idx, maxColor, dailyLimitRelaxation) {
     if (idx === sessions.length) return true;
-    if (sessions[idx].color !== -1) return backtrack(sessions, adj, idx + 1, maxColor);
+    if (sessions[idx].color !== -1) {
+      return backtrack(sessions, adj, idx + 1, maxColor, dailyLimitRelaxation);
+    }
+
     for (var c = 0; c < maxColor; c++) {
-      if (isSafeColor(sessions, adj, idx, c)) {
+      if (isSafeColor(sessions, adj, idx, c, dailyLimitRelaxation)) {
         sessions[idx].color = c;
-        if (backtrack(sessions, adj, idx + 1, maxColor)) return true;
+        if (backtrack(sessions, adj, idx + 1, maxColor, dailyLimitRelaxation)) return true;
         sessions[idx].color = -1;
       }
     }
@@ -369,7 +466,11 @@
       if (maxColor >= TOTAL_SLOTS) {
         /* Try backtracking with TOTAL_SLOTS constraint */
         sessions.forEach(function (s) { if (s.color >= TOTAL_SLOTS) s.color = -1; });
-        backtrack(sessions, adj, 0, TOTAL_SLOTS);
+        var solved = backtrack(sessions, adj, 0, TOTAL_SLOTS, 0);
+        if (!solved) {
+          /* Mild relaxation to keep schedule possible for very dense inputs. */
+          backtrack(sessions, adj, 0, TOTAL_SLOTS, 1);
+        }
 
         maxColor = -1;
         for (i = 0; i < sessions.length; i++) {
@@ -379,11 +480,27 @@
 
       bar.style.width = '100%';
 
+      var resultDiv = document.getElementById('generateResult');
+      var unscheduledCount = sessions.filter(function (s) {
+        return s.color < 0 || s.color >= TOTAL_SLOTS;
+      }).length;
+
+      if (unscheduledCount > 0) {
+        resultDiv.innerHTML =
+          '<div class="card" style="padding:20px;margin-top:16px;">' +
+          '<p style="color:var(--danger);font-weight:700;margin-bottom:8px;">⚠ Could not place all sessions realistically.</p>' +
+          '<p style="font-size:.875rem;color:var(--text-muted);">Unscheduled sessions: <strong>' + unscheduledCount + '</strong>. ' +
+          'Try reducing weekly lectures or adding more available slots/resources.</p>' +
+          '</div>';
+        window.app.showToast('Could not schedule all sessions with current constraints.', 'error');
+        setTimeout(function () { wrap.style.display = 'none'; bar.style.width = '0%'; }, 600);
+        return;
+      }
+
       var entries   = buildTimetable(sessions, db);
       var conflicts = validateTimetable(entries);
 
       /* Result summary */
-      var resultDiv = document.getElementById('generateResult');
       var slotsUsed = maxColor + 1;
       var totalConflicts = conflicts.teacher + conflicts.room + conflicts.batch;
       if (totalConflicts === 0) {
