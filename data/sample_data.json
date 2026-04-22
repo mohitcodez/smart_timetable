@@ -1,0 +1,27 @@
+{
+  "teachers": [
+    { "teacher_id": 0, "teacher_name": "Dr. Sharma",   "availability": "all" },
+    { "teacher_id": 1, "teacher_name": "Prof. Gupta",  "availability": "all" },
+    { "teacher_id": 2, "teacher_name": "Ms. Verma",    "availability": "all" },
+    { "teacher_id": 3, "teacher_name": "Mr. Singh",    "availability": "all" },
+    { "teacher_id": 4, "teacher_name": "Dr. Mehta",    "availability": "all" }
+  ],
+  "rooms": [
+    { "room_id": 0, "room_name": "R101",  "capacity": 60 },
+    { "room_id": 1, "room_name": "R102",  "capacity": 50 },
+    { "room_id": 2, "room_name": "R103",  "capacity": 40 },
+    { "room_id": 3, "room_name": "Lab-A", "capacity": 30 }
+  ],
+  "subjects": [
+    { "subject_id": 0, "subject_name": "Mathematics",      "teacher_id": 0, "lectures_per_week": 2 },
+    { "subject_id": 1, "subject_name": "Physics",          "teacher_id": 1, "lectures_per_week": 2 },
+    { "subject_id": 2, "subject_name": "Chemistry",        "teacher_id": 2, "lectures_per_week": 2 },
+    { "subject_id": 3, "subject_name": "Computer Science", "teacher_id": 3, "lectures_per_week": 2 },
+    { "subject_id": 4, "subject_name": "English",          "teacher_id": 4, "lectures_per_week": 1 }
+  ],
+  "batches": [
+    { "batch_id": 0, "batch_name": "CSE-A", "student_count": 55 },
+    { "batch_id": 1, "batch_name": "CSE-B", "student_count": 50 },
+    { "batch_id": 2, "batch_name": "ECE-A", "student_count": 35 }
+  ]
+}

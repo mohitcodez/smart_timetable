@@ -1,0 +1,9 @@
+# Compiled C binaries
+backend/scheduler
+backend/*.o
+
+# Editor artifacts
+*.swp
+*.swo
+*~
+.DS_Store
