@@ -66,6 +66,32 @@ static int readInt(const char **p)
     return neg ? -v : v;
 }
 
+static int readIntArray(const char **p, int *values, int maxCount)
+{
+    const char *s = *p;
+    while (*s && *s != '[') s++;
+    if (*s != '[') {
+        *p = s;
+        return 0;
+    }
+
+    s++; /* skip '[' */
+    int count = 0;
+    while (*s && *s != ']') {
+        while (*s && !isdigit((unsigned char)*s) && *s != '-' && *s != ']') s++;
+        if (*s == ']') break;
+        if (count < maxCount) {
+            values[count++] = readInt(&s);
+        } else {
+            (void)readInt(&s);
+        }
+    }
+
+    if (*s == ']') s++;
+    *p = s;
+    return count;
+}
+
 /* Advance *p to the next '{', stopping at ']' (end-of-array), and
    return that position, or NULL if ']'/'\0' is encountered first. */
 static const char *nextObject(const char **p)
@@ -173,6 +199,11 @@ static int parseSubjects(const char *section, InputData *data)
         if (findKey(&tmp, "teacher_id"))       s->teacher_id = readInt(&tmp);
         tmp = body;
         if (findKey(&tmp, "lectures_per_week")) s->lectures_per_week = readInt(&tmp);
+        tmp = body;
+        if (findKey(&tmp, "batch_ids"))
+            s->batch_id_count = readIntArray(&tmp, s->batch_ids, MAX_ITEMS);
+        else
+            s->batch_id_count = 0;
         free(body);
         count++;
     }
@@ -299,6 +330,20 @@ int buildSessions(const InputData *data, Session *sessions, int maxSessions)
         for (bi = 0; bi < data->batch_count && si < maxSessions; bi++) {
             const Batch *batch   = &data->batches[bi];
             int          roomIdx = batchRoom[bi];
+            int          applies = (subj->batch_id_count == 0);
+
+            if (!applies) {
+                int bk;
+                for (bk = 0; bk < subj->batch_id_count; bk++) {
+                    if (subj->batch_ids[bk] == batch->batch_id) {
+                        applies = 1;
+                        break;
+                    }
+                }
+            }
+
+            if (!applies)
+                continue;
 
             for (lk = 0; lk < subj->lectures_per_week && si < maxSessions; lk++) {
                 Session *s  = &sessions[si];

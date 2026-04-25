@@ -261,12 +261,22 @@ button { cursor: pointer; font-family: inherit; }
 .section.active { display: block; }
 
 .section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
+display: flex;
+align-items: center;
+justify-content: space-between;
+margin-bottom: 20px;
 }
 .section-header h3 { font-size: 1.1rem; font-weight: 600; }
+.header-actions { display: flex; gap: 10px; }
+
+.import-help { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px; }
+.import-example { font-family: monospace; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }
+.import-preview { margin-top: 16px; max-height: 200px; overflow-y: auto; font-size: 0.85rem; }
+.import-preview table { width: 100%; border-collapse: collapse; }
+.import-preview th { background: #f8fafc; padding: 6px 10px; text-align: left; font-weight: 600; font-size: 0.75rem; }
+.import-preview td { padding: 6px 10px; border-bottom: 1px solid var(--border); }
+.import-errors { color: var(--danger); margin-top: 10px; font-size: 0.85rem; }
+.import-success { color: var(--success); margin-top: 10px; font-size: 0.85rem; }
 
 /* ── Buttons ────────────────────────────────────────────────────────── */
 .btn {

@@ -1,8 +1,8 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
-#define MAX_NODES 256
-#define MAX_COLORS 40   /* max time slots (5 days × 8 slots) */
+#define MAX_NODES 1024
+#define MAX_COLORS 80   /* buffer above TOTAL_SLOTS for greedy exploration */
 
 /* A class session (vertex in the conflict graph) */
 typedef struct {

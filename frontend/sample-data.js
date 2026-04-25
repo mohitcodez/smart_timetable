@@ -1,4 +1,5 @@
-{
+﻿window.TTS_SAMPLE_DATA_VERSION = '2026-04-23';
+window.TTS_SAMPLE_DATA = {
   "teachers": [
     {
       "teacher_id": 1,
@@ -1560,4 +1561,5 @@
       "student_count": 60
     }
   ]
-}
+};
+

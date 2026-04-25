@@ -130,19 +130,26 @@
               Generate Timetable
             </button>
             <button class="btn btn-secondary" onclick="app.showSection('teachers')">Manage Teachers</button>
+            <button class="btn btn-secondary" onclick="app.reloadProjectSampleData()">Reload Project Data</button>
           </div>
         </div>
       </div>
 
-      <!-- Teachers -->
-      <div class="section" id="sec-teachers">
-        <div class="section-header">
-          <h3>Teachers</h3>
-          <button class="btn btn-primary" id="btnAddTeacher">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Add Teacher
-          </button>
-        </div>
+<!-- Teachers -->
+<div class="section" id="sec-teachers">
+<div class="section-header">
+<h3>Teachers</h3>
+<div class="header-actions">
+<button class="btn btn-secondary" id="btnImportTeachers">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+Import CSV
+</button>
+<button class="btn btn-primary" id="btnAddTeacher">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+Add Teacher
+</button>
+</div>
+</div>
         <div class="card">
           <div class="table-wrapper">
             <table id="teachersTable">
@@ -157,15 +164,21 @@
         </div>
       </div>
 
-      <!-- Rooms -->
-      <div class="section" id="sec-rooms">
-        <div class="section-header">
-          <h3>Rooms</h3>
-          <button class="btn btn-primary" id="btnAddRoom">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Add Room
-          </button>
-        </div>
+<!-- Rooms -->
+<div class="section" id="sec-rooms">
+<div class="section-header">
+<h3>Rooms</h3>
+<div class="header-actions">
+<button class="btn btn-secondary" id="btnImportRooms">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+Import CSV
+</button>
+<button class="btn btn-primary" id="btnAddRoom">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+Add Room
+</button>
+</div>
+</div>
         <div class="card">
           <div class="table-wrapper">
             <table id="roomsTable">
@@ -178,15 +191,21 @@
         </div>
       </div>
 
-      <!-- Subjects -->
-      <div class="section" id="sec-subjects">
-        <div class="section-header">
-          <h3>Subjects</h3>
-          <button class="btn btn-primary" id="btnAddSubject">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-            Add Subject
-          </button>
-        </div>
+<!-- Subjects -->
+<div class="section" id="sec-subjects">
+<div class="section-header">
+<h3>Subjects</h3>
+<div class="header-actions">
+<button class="btn btn-secondary" id="btnImportSubjects">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+Import CSV
+</button>
+<button class="btn btn-primary" id="btnAddSubject">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+Add Subject
+</button>
+</div>
+</div>
         <div class="card">
           <div class="table-wrapper">
             <table id="subjectsTable">
@@ -369,32 +388,102 @@
 
 <!-- Batch Modal -->
 <div class="modal-overlay" id="modalBatch">
-  <div class="modal">
-    <div class="modal-header">
-      <h4 id="modalBatchTitle">Add Batch</h4>
-      <button class="modal-close" data-close="modalBatch">&times;</button>
-    </div>
-    <div class="modal-body">
-      <input type="hidden" id="bEditId">
-      <div class="form-group">
-        <label>Batch Name</label>
-        <input type="text" id="bName" placeholder="e.g. CSE-A">
-      </div>
-      <div class="form-group">
-        <label>Student Count</label>
-        <input type="number" id="bCount" min="1" placeholder="e.g. 50">
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" data-close="modalBatch">Cancel</button>
-      <button class="btn btn-primary" id="btnSaveBatch">Save</button>
-    </div>
-  </div>
+<div class="modal">
+<div class="modal-header">
+<h4 id="modalBatchTitle">Add Batch</h4>
+<button class="modal-close" data-close="modalBatch">&times;</button>
+</div>
+<div class="modal-body">
+<input type="hidden" id="bEditId">
+<div class="form-group">
+<label>Batch Name</label>
+<input type="text" id="bName" placeholder="e.g. CSE-A">
+</div>
+<div class="form-group">
+<label>Student Count</label>
+<input type="number" id="bCount" min="1" placeholder="e.g. 50">
+</div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-secondary" data-close="modalBatch">Cancel</button>
+<button class="btn btn-primary" id="btnSaveBatch">Save</button>
+</div>
+</div>
+</div>
+
+<!-- Import Teachers Modal -->
+<div class="modal-overlay" id="modalImportTeachers">
+<div class="modal">
+<div class="modal-header">
+<h4>Import Teachers from CSV</h4>
+<button class="modal-close" data-close="modalImportTeachers">&times;</button>
+</div>
+<div class="modal-body">
+<p class="import-help">Upload a CSV file with columns: <strong>teacher_name, subjects, availability</strong></p>
+<p class="import-help import-example">Example: Dr. Sharma,Mathematics;Physics,Mon-Wed</p>
+<div class="form-group">
+<label>Select CSV File</label>
+<input type="file" id="fileImportTeachers" accept=".csv">
+</div>
+<div class="import-preview" id="importTeachersPreview"></div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-secondary" data-close="modalImportTeachers">Cancel</button>
+<button class="btn btn-primary" id="btnConfirmImportTeachers">Import Teachers</button>
+</div>
+</div>
+</div>
+
+<!-- Import Rooms Modal -->
+<div class="modal-overlay" id="modalImportRooms">
+<div class="modal">
+<div class="modal-header">
+<h4>Import Rooms from CSV</h4>
+<button class="modal-close" data-close="modalImportRooms">&times;</button>
+</div>
+<div class="modal-body">
+<p class="import-help">Upload a CSV file with columns: <strong>room_name, capacity</strong></p>
+<p class="import-help import-example">Example: R101,60</p>
+<div class="form-group">
+<label>Select CSV File</label>
+<input type="file" id="fileImportRooms" accept=".csv">
+</div>
+<div class="import-preview" id="importRoomsPreview"></div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-secondary" data-close="modalImportRooms">Cancel</button>
+<button class="btn btn-primary" id="btnConfirmImportRooms">Import Rooms</button>
+</div>
+</div>
+</div>
+
+<!-- Import Subjects Modal -->
+<div class="modal-overlay" id="modalImportSubjects">
+<div class="modal">
+<div class="modal-header">
+<h4>Import Subjects from CSV</h4>
+<button class="modal-close" data-close="modalImportSubjects">&times;</button>
+</div>
+<div class="modal-body">
+<p class="import-help">Upload a CSV file with columns: <strong>subject_name, teacher_name, lectures_per_week</strong></p>
+<p class="import-help import-example">Example: Mathematics,Dr. Sharma,3</p>
+<div class="form-group">
+<label>Select CSV File</label>
+<input type="file" id="fileImportSubjects" accept=".csv">
+</div>
+<div class="import-preview" id="importSubjectsPreview"></div>
+</div>
+<div class="modal-footer">
+<button class="btn btn-secondary" data-close="modalImportSubjects">Cancel</button>
+<button class="btn btn-primary" id="btnConfirmImportSubjects">Import Subjects</button>
+</div>
+</div>
 </div>
 
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
+<script src="sample-data.js"></script>
 <script src="app.js"></script>
 <script src="timetable.js"></script>
 </body>

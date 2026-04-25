@@ -182,10 +182,10 @@ void outputJSON(const TimetableEntry *entries, int n,
         printf("    {\n");
         printf("      \"day\": \"%s\",\n",    DAY_NAMES[e->day]);
         printf("      \"slot\": %d,\n",       e->slot + 1);
-        printf("      \"room\": \"%s\",\n",   safeName(roomNames,    e->room_id,    256));
-        printf("      \"subject\": \"%s\",\n",safeName(subjectNames, e->subject_id, 256));
-        printf("      \"teacher\": \"%s\",\n",safeName(teacherNames, e->teacher_id, 256));
-        printf("      \"batch\": \"%s\"\n",   safeName(batchNames,   e->batch_id,   256));
+        printf("      \"room\": \"%s\",\n",   safeName(roomNames,    e->room_id,    1024));
+        printf("      \"subject\": \"%s\",\n",safeName(subjectNames, e->subject_id, 1024));
+        printf("      \"teacher\": \"%s\",\n",safeName(teacherNames, e->teacher_id, 1024));
+        printf("      \"batch\": \"%s\"\n",   safeName(batchNames,   e->batch_id,   1024));
         printf("    }%s\n", (i < n - 1) ? "," : "");
     }
     printf("  ]\n}\n");

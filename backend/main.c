@@ -93,11 +93,11 @@ int main(int argc, char *argv[])
     int entryCount = buildTimetable(&g, entries);
 
     
-    static const char *subjectNames[256];
-    static const char *teacherNames[256];
-    static const char *roomNames[256];
-    static const char *batchNames[256];
-    buildNameTables(&data, subjectNames, teacherNames, roomNames, batchNames, 256);
+    static const char *subjectNames[1024];
+    static const char *teacherNames[1024];
+    static const char *roomNames[1024];
+    static const char *batchNames[1024];
+    buildNameTables(&data, subjectNames, teacherNames, roomNames, batchNames, 1024);
 
     outputJSON(entries, entryCount,
                subjectNames, teacherNames, roomNames, batchNames);

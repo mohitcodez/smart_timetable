@@ -3,7 +3,7 @@
 
 #include "graph.h"   
 
-#define MAX_ITEMS      64
+#define MAX_ITEMS      256
 #define MAX_NAME_LEN  128
 
 
@@ -25,6 +25,8 @@ typedef struct {
     char subject_name[MAX_NAME_LEN];
     int  teacher_id;
     int  lectures_per_week;
+    int  batch_ids[MAX_ITEMS];
+    int  batch_id_count;
 } Subject;
 
 typedef struct {
