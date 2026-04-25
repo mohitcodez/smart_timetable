@@ -1,34 +1,20 @@
-/**
-* app.js - Smart Timetable Dashboard Application
-*
-* This file handles all the dashboard functionality including:
-* - User authentication
-* - Managing teachers, rooms, subjects, and batches
-* - CSV import functionality
-* - Saving data to browser storage
-*/
-
 (function() {
 'use strict';
 
-// Check if user is logged in
 var currentUser = sessionStorage.getItem('ttsUser');
 if (!currentUser) {
 window.location.replace('index.html');
 return;
 }
 
-// Set up the user display in the header
 document.getElementById('topbarUser').textContent = currentUser;
 document.getElementById('topbarAvatar').textContent = currentUser.charAt(0).toUpperCase();
 
-// Logout button handler
 document.getElementById('btnLogout').addEventListener('click', function() {
 sessionStorage.removeItem('ttsUser');
 window.location.replace('index.html');
 });
 
-// Storage keys for our data
 var STORAGE_KEYS = {
 teachers: 'tts_teachers',
 rooms: 'tts_rooms',
@@ -39,9 +25,6 @@ batches: 'tts_batches'
 var SEED_VERSION_KEY = 'tts_sample_seed_version';
 var CURRENT_SEED_VERSION = window.TTS_SAMPLE_DATA_VERSION || 'embedded-sample';
 
-/**
-* Load data from localStorage
-*/
 function loadData(key) {
 var raw = localStorage.getItem(key);
 if (!raw) return [];
@@ -52,21 +35,14 @@ return [];
 }
 }
 
-/**
-* Save data to localStorage
-*/
 function saveData(key, data) {
 localStorage.setItem(key, JSON.stringify(data));
 }
 
-/**
-* Get a deep copy of an object
-*/
 function copyObject(obj) {
 return JSON.parse(JSON.stringify(obj));
 }
 
-// Main database object - holds all our data in memory
 var database = {
 teachers: loadData(STORAGE_KEYS.teachers),
 rooms: loadData(STORAGE_KEYS.rooms),
@@ -74,9 +50,6 @@ subjects: loadData(STORAGE_KEYS.subjects),
 batches: loadData(STORAGE_KEYS.batches)
 };
 
-/**
-* Save all database data to storage
-*/
 function saveAllData() {
 saveData(STORAGE_KEYS.teachers, database.teachers);
 saveData(STORAGE_KEYS.rooms, database.rooms);
@@ -84,14 +57,10 @@ saveData(STORAGE_KEYS.subjects, database.subjects);
 saveData(STORAGE_KEYS.batches, database.batches);
 }
 
-/**
-* Process sample data from the embedded file
-*/
 function normalizeSampleData(rawData) {
 var sample = copyObject(rawData || {});
 var teacherSubjects = {};
 
-// Build a map of teacher to their subjects
 sample.teachers = sample.teachers || [];
 sample.rooms = sample.rooms || [];
 sample.subjects = sample.subjects || [];
@@ -102,7 +71,6 @@ var teacherId = sample.teachers[i].teacher_id;
 teacherSubjects[teacherId] = [];
 }
 
-// Link subjects to teachers
 for (var j = 0; j < sample.subjects.length; j++) {
 var subject = sample.subjects[j];
 var teacherId = subject.teacher_id;
@@ -112,7 +80,6 @@ teacherSubjects[teacherId] = [];
 teacherSubjects[teacherId].push(subject.subject_name);
 }
 
-// Update teacher records with their subjects
 sample.teachers = sample.teachers.map(function(teacher) {
 var copy = copyObject(teacher);
 if (!copy.subjects) {
@@ -124,9 +91,6 @@ return copy;
 return sample;
 }
 
-/**
-* Load the sample project data into our database
-*/
 function loadSampleData() {
 if (!window.TTS_SAMPLE_DATA) return false;
 
@@ -140,12 +104,10 @@ localStorage.setItem(SEED_VERSION_KEY, CURRENT_SEED_VERSION);
 return true;
 }
 
-// Load sample data if version doesn't match
 if (window.TTS_SAMPLE_DATA && localStorage.getItem(SEED_VERSION_KEY) !== CURRENT_SEED_VERSION) {
 loadSampleData();
 }
 
-// Set up default data if nothing exists yet
 if (database.teachers.length === 0) {
 database.teachers = [
 { teacher_id: 1, teacher_name: 'Dr. Sharma', subjects: 'Mathematics', availability: 'all' },
@@ -187,9 +149,6 @@ database.batches = [
 saveData(STORAGE_KEYS.batches, database.batches);
 }
 
-/**
-* Find the next available ID for a new item
-*/
 function getNextId(itemList, idField) {
 var maxId = 0;
 for (var i = 0; i < itemList.length; i++) {
@@ -200,9 +159,6 @@ maxId = itemList[i][idField];
 return maxId + 1;
 }
 
-/**
-* Find an item by its ID
-*/
 function findById(itemList, fieldName, id) {
 for (var i = 0; i < itemList.length; i++) {
 if (itemList[i][fieldName] === id) {
@@ -212,9 +168,6 @@ return itemList[i];
 return null;
 }
 
-/**
-* Remove an item by its ID
-*/
 function removeById(itemList, fieldName, id) {
 var result = [];
 for (var i = 0; i < itemList.length; i++) {
@@ -225,7 +178,6 @@ result.push(itemList[i]);
 return result;
 }
 
-// Toast notification system
 var toastElement = document.getElementById('toast');
 var toastTimeout = null;
 
@@ -233,7 +185,7 @@ function showToast(message, type) {
 type = type || 'info';
 toastElement.textContent = message;
 toastElement.className = 'toast ' + type;
-toastElement.offsetHeight; // Trigger reflow
+toastElement.offsetHeight;
 toastElement.classList.add('show');
 
 if (toastTimeout) clearTimeout(toastTimeout);
@@ -242,7 +194,6 @@ toastElement.classList.remove('show');
 }, 3000);
 }
 
-// Modal helpers
 function openModal(modalId) {
 document.getElementById(modalId).classList.add('open');
 }
@@ -251,7 +202,6 @@ function closeModal(modalId) {
 document.getElementById(modalId).classList.remove('open');
 }
 
-// Set up modal close buttons
 var closeButtons = document.querySelectorAll('[data-close]');
 for (var i = 0; i < closeButtons.length; i++) {
 closeButtons[i].addEventListener('click', function() {
@@ -259,7 +209,6 @@ closeModal(this.dataset.close);
 });
 }
 
-// Close modal when clicking outside
 var modalOverlays = document.querySelectorAll('.modal-overlay');
 for (var j = 0; j < modalOverlays.length; j++) {
 modalOverlays[j].addEventListener('click', function(event) {
@@ -269,7 +218,6 @@ closeModal(this.id);
 });
 }
 
-// Section titles for navigation
 var sectionTitles = {
 dashboard: 'Dashboard',
 teachers: 'Teachers',
@@ -280,9 +228,6 @@ generate: 'Generate Timetable',
 timetable: 'View Timetable'
 };
 
-/**
-* Show a specific section and hide others
-*/
 function showSection(sectionName) {
 var allSections = document.querySelectorAll('.section');
 for (var i = 0; i < allSections.length; i++) {
@@ -308,7 +253,6 @@ document.getElementById('pageTitle').textContent = sectionTitles[sectionName] ||
 updateStats();
 }
 
-// Set up sidebar navigation clicks
 var navItems = document.querySelectorAll('.nav-item');
 for (var k = 0; k < navItems.length; k++) {
 navItems[k].addEventListener('click', function() {
@@ -316,9 +260,6 @@ showSection(this.dataset.section);
 });
 }
 
-/**
-* Update the dashboard statistics
-*/
 function updateStats() {
 document.getElementById('stat-teachers').textContent = database.teachers.length;
 document.getElementById('stat-rooms').textContent = database.rooms.length;
@@ -327,16 +268,12 @@ document.getElementById('stat-batches').textContent = database.batches.length;
 }
 updateStats();
 
-// Color classes for badges
 var BADGE_COLORS = ['badge-blue', 'badge-green', 'badge-orange', 'badge-sky', 'badge-purple'];
 
 function getBadgeColor(index) {
 return BADGE_COLORS[index % BADGE_COLORS.length];
 }
 
-/**
-* Escape HTML special characters
-*/
 function escapeHtml(text) {
 return String(text)
 .replace(/&/g, '&amp;')
@@ -345,11 +282,6 @@ return String(text)
 .replace(/"/g, '&quot;');
 }
 
-// ===================== TEACHERS SECTION =====================
-
-/**
-* Render the teachers table
-*/
 function renderTeachers() {
 var tbody = document.getElementById('teachersBody');
 if (database.teachers.length === 0) {
@@ -374,9 +306,6 @@ html += '<tr>' +
 tbody.innerHTML = html;
 }
 
-/**
-* Open the teacher modal for adding or editing
-*/
 function openTeacherModal(teacher) {
 document.getElementById('modalTeacherTitle').textContent = teacher ? 'Edit Teacher' : 'Add Teacher';
 document.getElementById('tEditId').value = teacher ? teacher.teacher_id : '';
@@ -386,12 +315,10 @@ document.getElementById('tAvailability').value = teacher ? (teacher.availability
 openModal('modalTeacher');
 }
 
-// Add teacher button
 document.getElementById('btnAddTeacher').addEventListener('click', function() {
 openTeacherModal(null);
 });
 
-// Save teacher button
 document.getElementById('btnSaveTeacher').addEventListener('click', function() {
 var name = document.getElementById('tName').value.trim();
 if (!name) {
@@ -404,7 +331,6 @@ var subjects = document.getElementById('tSubjects').value.trim();
 var availability = document.getElementById('tAvailability').value.trim() || 'all';
 
 if (editId) {
-// Editing existing teacher
 for (var i = 0; i < database.teachers.length; i++) {
 if (database.teachers[i].teacher_id === editId) {
 database.teachers[i].teacher_name = name;
@@ -414,7 +340,6 @@ break;
 }
 }
 } else {
-// Adding new teacher
 database.teachers.push({
 teacher_id: getNextId(database.teachers, 'teacher_id'),
 teacher_name: name,
@@ -430,9 +355,6 @@ updateStats();
 showToast(editId ? 'Teacher updated.' : 'Teacher added.', 'success');
 });
 
-/**
-* Edit a teacher by ID
-*/
 function editTeacher(id) {
 var teacher = findById(database.teachers, 'teacher_id', id);
 if (teacher) {
@@ -440,9 +362,6 @@ openTeacherModal(teacher);
 }
 }
 
-/**
-* Delete a teacher by ID
-*/
 function deleteTeacher(id) {
 if (!confirm('Delete this teacher?')) return;
 database.teachers = removeById(database.teachers, 'teacher_id', id);
@@ -452,11 +371,6 @@ updateStats();
 showToast('Teacher deleted.', 'info');
 }
 
-// ===================== ROOMS SECTION =====================
-
-/**
-* Render the rooms table
-*/
 function renderRooms() {
 var tbody = document.getElementById('roomsBody');
 if (database.rooms.length === 0) {
@@ -480,9 +394,6 @@ html += '<tr>' +
 tbody.innerHTML = html;
 }
 
-/**
-* Open the room modal for adding or editing
-*/
 function openRoomModal(room) {
 document.getElementById('modalRoomTitle').textContent = room ? 'Edit Room' : 'Add Room';
 document.getElementById('rEditId').value = room ? room.room_id : '';
@@ -491,12 +402,10 @@ document.getElementById('rCapacity').value = room ? room.capacity : '';
 openModal('modalRoom');
 }
 
-// Add room button
 document.getElementById('btnAddRoom').addEventListener('click', function() {
 openRoomModal(null);
 });
 
-// Save room button
 document.getElementById('btnSaveRoom').addEventListener('click', function() {
 var name = document.getElementById('rName').value.trim();
 var capacity = parseInt(document.getElementById('rCapacity').value, 10);
@@ -509,7 +418,6 @@ return;
 var editId = parseInt(document.getElementById('rEditId').value, 10);
 
 if (editId) {
-// Editing existing room
 for (var i = 0; i < database.rooms.length; i++) {
 if (database.rooms[i].room_id === editId) {
 database.rooms[i].room_name = name;
@@ -518,7 +426,6 @@ break;
 }
 }
 } else {
-// Adding new room
 database.rooms.push({
 room_id: getNextId(database.rooms, 'room_id'),
 room_name: name,
@@ -533,9 +440,6 @@ updateStats();
 showToast(editId ? 'Room updated.' : 'Room added.', 'success');
 });
 
-/**
-* Edit a room by ID
-*/
 function editRoom(id) {
 var room = findById(database.rooms, 'room_id', id);
 if (room) {
@@ -543,9 +447,6 @@ openRoomModal(room);
 }
 }
 
-/**
-* Delete a room by ID
-*/
 function deleteRoom(id) {
 if (!confirm('Delete this room?')) return;
 database.rooms = removeById(database.rooms, 'room_id', id);
@@ -555,11 +456,6 @@ updateStats();
 showToast('Room deleted.', 'info');
 }
 
-// ===================== SUBJECTS SECTION =====================
-
-/**
-* Fill the teacher dropdown in the subject form
-*/
 function populateTeacherDropdown() {
 var select = document.getElementById('sTeacher');
 var html = '';
@@ -570,9 +466,6 @@ html += '<option value="' + teacher.teacher_id + '">' + escapeHtml(teacher.teach
 select.innerHTML = html;
 }
 
-/**
-* Render the subjects table
-*/
 function renderSubjects() {
 var tbody = document.getElementById('subjectsBody');
 if (database.subjects.length === 0) {
@@ -598,9 +491,6 @@ html += '<tr>' +
 tbody.innerHTML = html;
 }
 
-/**
-* Open the subject modal for adding or editing
-*/
 function openSubjectModal(subject) {
 populateTeacherDropdown();
 document.getElementById('modalSubjectTitle').textContent = subject ? 'Edit Subject' : 'Add Subject';
@@ -613,12 +503,10 @@ document.getElementById('sTeacher').value = subject.teacher_id;
 openModal('modalSubject');
 }
 
-// Add subject button
 document.getElementById('btnAddSubject').addEventListener('click', function() {
 openSubjectModal(null);
 });
 
-// Save subject button
 document.getElementById('btnSaveSubject').addEventListener('click', function() {
 var name = document.getElementById('sName').value.trim();
 var teacherId = parseInt(document.getElementById('sTeacher').value, 10);
@@ -632,7 +520,6 @@ return;
 var editId = parseInt(document.getElementById('sEditId').value, 10);
 
 if (editId) {
-// Editing existing subject
 for (var i = 0; i < database.subjects.length; i++) {
 if (database.subjects[i].subject_id === editId) {
 database.subjects[i].subject_name = name;
@@ -642,7 +529,6 @@ break;
 }
 }
 } else {
-// Adding new subject
 database.subjects.push({
 subject_id: getNextId(database.subjects, 'subject_id'),
 subject_name: name,
@@ -658,9 +544,6 @@ updateStats();
 showToast(editId ? 'Subject updated.' : 'Subject added.', 'success');
 });
 
-/**
-* Edit a subject by ID
-*/
 function editSubject(id) {
 var subject = findById(database.subjects, 'subject_id', id);
 if (subject) {
@@ -668,9 +551,6 @@ openSubjectModal(subject);
 }
 }
 
-/**
-* Delete a subject by ID
-*/
 function deleteSubject(id) {
 if (!confirm('Delete this subject?')) return;
 database.subjects = removeById(database.subjects, 'subject_id', id);
@@ -680,11 +560,6 @@ updateStats();
 showToast('Subject deleted.', 'info');
 }
 
-// ===================== BATCHES SECTION =====================
-
-/**
-* Render the batches table
-*/
 function renderBatches() {
 var tbody = document.getElementById('batchesBody');
 if (database.batches.length === 0) {
@@ -708,9 +583,6 @@ html += '<tr>' +
 tbody.innerHTML = html;
 }
 
-/**
-* Open the batch modal for adding or editing
-*/
 function openBatchModal(batch) {
 document.getElementById('modalBatchTitle').textContent = batch ? 'Edit Batch' : 'Add Batch';
 document.getElementById('bEditId').value = batch ? batch.batch_id : '';
@@ -719,12 +591,10 @@ document.getElementById('bCount').value = batch ? batch.student_count : '';
 openModal('modalBatch');
 }
 
-// Add batch button
 document.getElementById('btnAddBatch').addEventListener('click', function() {
 openBatchModal(null);
 });
 
-// Save batch button
 document.getElementById('btnSaveBatch').addEventListener('click', function() {
 var name = document.getElementById('bName').value.trim();
 var count = parseInt(document.getElementById('bCount').value, 10);
@@ -737,7 +607,6 @@ return;
 var editId = parseInt(document.getElementById('bEditId').value, 10);
 
 if (editId) {
-// Editing existing batch
 for (var i = 0; i < database.batches.length; i++) {
 if (database.batches[i].batch_id === editId) {
 database.batches[i].batch_name = name;
@@ -746,7 +615,6 @@ break;
 }
 }
 } else {
-// Adding new batch
 database.batches.push({
 batch_id: getNextId(database.batches, 'batch_id'),
 batch_name: name,
@@ -761,9 +629,6 @@ updateStats();
 showToast(editId ? 'Batch updated.' : 'Batch added.', 'success');
 });
 
-/**
-* Edit a batch by ID
-*/
 function editBatch(id) {
 var batch = findById(database.batches, 'batch_id', id);
 if (batch) {
@@ -771,9 +636,6 @@ openBatchModal(batch);
 }
 }
 
-/**
-* Delete a batch by ID
-*/
 function deleteBatch(id) {
 if (!confirm('Delete this batch?')) return;
 database.batches = removeById(database.batches, 'batch_id', id);
@@ -783,11 +645,6 @@ updateStats();
 showToast('Batch deleted.', 'info');
 }
 
-// ===================== CSV IMPORT SECTION =====================
-
-/**
-* Parse a CSV text file into a 2D array
-*/
 function parseCSVFile(text) {
 var lines = text.trim().split('\n');
 var result = [];
@@ -804,9 +661,6 @@ result.push(cleaned);
 return result;
 }
 
-/**
-* Show a preview of CSV data in a table
-*/
 function showPreviewTable(previewId, data, headers) {
 var previewDiv = document.getElementById(previewId);
 if (data.length === 0) {
@@ -837,12 +691,10 @@ html += '</table>';
 previewDiv.innerHTML = html;
 }
 
-// Temporary storage for pending imports
 var pendingTeachersImport = null;
 var pendingRoomsImport = null;
 var pendingSubjectsImport = null;
 
-// TEACHERS IMPORT
 document.getElementById('btnImportTeachers').addEventListener('click', function() {
 document.getElementById('fileImportTeachers').value = '';
 document.getElementById('importTeachersPreview').innerHTML = '';
@@ -924,7 +776,6 @@ showToast('Successfully imported ' + imported + ' teachers.', 'success');
 }
 });
 
-// ROOMS IMPORT
 document.getElementById('btnImportRooms').addEventListener('click', function() {
 document.getElementById('fileImportRooms').value = '';
 document.getElementById('importRoomsPreview').innerHTML = '';
@@ -1009,7 +860,6 @@ showToast('Successfully imported ' + imported + ' rooms.', 'success');
 }
 });
 
-// SUBJECTS IMPORT
 document.getElementById('btnImportSubjects').addEventListener('click', function() {
 document.getElementById('fileImportSubjects').value = '';
 document.getElementById('importSubjectsPreview').innerHTML = '';
@@ -1070,7 +920,6 @@ errors.push('Row ' + (i + 1) + ': Missing subject name');
 continue;
 }
 
-// Find the teacher by name
 var teacher = null;
 for (var t = 0; t < database.teachers.length; t++) {
 if (database.teachers[t].teacher_name.toLowerCase() === teacherName.toLowerCase()) {
@@ -1111,11 +960,6 @@ showToast('Successfully imported ' + imported + ' subjects.', 'success');
 }
 });
 
-// ===================== TIMETABLE VIEW RESET =====================
-
-/**
-* Reset the timetable view to its initial state
-*/
 function resetTimetableView() {
 var wrapper = document.getElementById('timetableWrapper');
 var exportBtn = document.getElementById('btnExportTT');
@@ -1137,9 +981,6 @@ wrapper.innerHTML =
 }
 }
 
-/**
-* Re-render all tables and update stats
-*/
 function refreshAllViews() {
 renderTeachers();
 renderRooms();
@@ -1148,10 +989,7 @@ renderBatches();
 updateStats();
 }
 
-// Initial render
 refreshAllViews();
-
-// ===================== PUBLIC API =====================
 
 window.app = {
 showSection: showSection,
@@ -1166,7 +1004,6 @@ editBatch: editBatch,
 deleteBatch: deleteBatch,
 showToast: showToast,
 
-// Reload the sample project data
 reloadProjectSampleData: function() {
 if (!loadSampleData()) {
 showToast('Project sample data is not available.', 'error');
