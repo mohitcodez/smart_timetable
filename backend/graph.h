@@ -4,7 +4,6 @@
 #define MAX_NODES 1024
 #define MAX_COLORS 80
 
-
 typedef struct {
 int session_id;
 int teacher_id;
