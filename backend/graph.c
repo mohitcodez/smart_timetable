@@ -25,6 +25,7 @@ g->adj[j][i] = 1;
 }
 }
 
+
 void printGraph(const Graph *g)
 {
 int i, j;
